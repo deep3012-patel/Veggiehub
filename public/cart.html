@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - VeggieHub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-leaf"></i> VeggieHub</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#products">Products</a></li>
+            <li><a href="cart.html" class="active">Cart <span class="cart-count">1</span></a></li>
+            <li><a href="#contact">Contact Us</a></li>
+            <li><a href="#about">About Us</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1><i class="fas fa-shopping-cart"></i> Your Shopping Cart</h1>
+        <p>Review and modify your selected items</p>
+    </div>
+
+    <main class="cart-page">
+        <div class="cart-container">
+            <div class="cart-items">
+                
+            </div>
+            
+            <div class="cart-summary">
+                <h2>Order Summary</h2>
+                <div class="summary-items">
+                    <div class="summary-item">
+                        <span>Subtotal</span>
+                        <span>₹0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Shipping</span>
+                        <span>₹0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Tax (10%)</span>
+                        <span>₹0.00</span>
+                    </div>
+                    <div class="summary-item discount">
+                        <span>Discount</span>
+                        <span>-₹0.00</span>
+                    </div>
+                </div>
+                
+                <div class="promo-code">
+                    <input type="text" placeholder="Enter promo code">
+                    <button class="apply-btn">Apply</button>
+                </div>
+
+                <div class="summary-total">
+                    <span>Total Amount</span>
+                    <span class="total-price">₹0.00</span>
+                </div>
+
+                <div class="payment-methods">
+                    <p>We Accept:</p>
+                    <div class="payment-icons">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-amex"></i>
+                        <i class="fab fa-cc-paypal"></i>
+                    </div>
+                </div>
+
+                <button class="checkout-btn" onclick="window.location.href='checkout.html'">
+                    <i class="fas fa-lock"></i> Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-leaf"></i> VeggieHub</h3>
+                <p>Fresh vegetables delivered to your doorstep</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#products">Products</a></li>
+                    <li><a href="cart.html">Cart</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+                <p><i class="fas fa-envelope"></i> info@VeggieHub.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 VeggieHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize cart from localStorage
+        const cartItemsContainer = document.querySelector('.cart-items');
+        let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        // Initialize cart timer
+        let cartTimer = parseInt(localStorage.getItem('cartTimer')) || null;
+
+        let productData = JSON.parse(localStorage.getItem('productData')) || {};
+        
+        // Auto-clear cart functionality
+        function startCartTimer() {
+            localStorage.setItem('cartLastActivity', Date.now());
+        }
+
+        function checkCartTimer() {
+            const lastActivity = parseInt(localStorage.getItem('cartLastActivity')) || Date.now();
+            const currentTime = Date.now();
+            const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+            if (currentTime - lastActivity > tenMinutes) {
+                // Return stock for all items
+                cartItems.forEach(item => {
+                    if (productData[item.name]) {
+                        productData[item.name].availableStock += item.quantity;
+                    }
+                });
+
+                // Clear cart
+                cartItems = [];
+                localStorage.setItem('cart', JSON.stringify([]));
+                localStorage.setItem('productData', JSON.stringify(productData));
+                localStorage.setItem('cartLastActivity', Date.now());
+
+                // Update UI
+                renderCart();
+                updateCartCount();
+                alert('Cart has been cleared due to 10 minutes of inactivity');
+            }
+        }
+
+        // Check cart timer every 5 seconds
+        setInterval(checkCartTimer, 5000);
+
+        // Update timer on any cart interaction
+        function updateCartTimer() {
+            startCartTimer();
+        }
+        
+        // Initial render
+        renderCart();
+        updateCartCount();
+        startCartTimer(); // Start timer when page loads
+
+        function renderCart() {
+            if (cartItems.length === 0) {
+                updateEmptyCartState();
+                return;
+            }
+
+            let cartHTML = `
+                <div class="cart-header">
+                    <span>Product</span>
+                    <span>Price</span>
+                    <span>Quantity</span>
+                    <span>Total</span>
+                    <span>Action</span>
+                </div>
+            `;
+
+            cartItems.forEach((item, index) => {
+                cartHTML += `
+                    <div class="cart-item" data-index="${index}">
+                        <div class="item-info">
+                            <img src="${item.image}" alt="${item.name}">
+                            <div class="item-details">
+                                <h3>${item.name}</h3>
+                                <span class="item-category"><i class="fas fa-tag"></i> Fresh Vegetables</span>
+                                <div class="item-weight">Weight: 1 kg</div>
+                            </div>
+                        </div>
+                        <div class="item-price">₹${item.price.toFixed(2)}</div>
+                        <div class="quantity-controls">
+                            <button class="qty-btn minus"><i class="fas fa-minus"></i></button>
+                            <input type="number" value="${item.quantity}" min="1" class="qty-input">
+                            <button class="qty-btn plus"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div class="item-total">₹${(item.price * item.quantity).toFixed(2)}</div>
+                        <button class="remove-btn" title="Remove Item"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            });
+
+            cartHTML += `
+                <div class="cart-actions">
+                    <button class="continue-shopping">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </button>
+                    <button class="clear-cart">
+                        <i class="fas fa-trash"></i> Clear Cart
+                    </button>
+                </div>
+            `;
+
+            cartItemsContainer.innerHTML = cartHTML;
+            attachEventListeners();
+            updateOrderSummary();
+        }
+
+        function attachEventListeners() {
+            // Quantity controls
+            document.querySelectorAll('.qty-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    updateCartTimer(); // Update timer on quantity change
+                    const input = this.parentElement.querySelector('.qty-input');
+                    const index = parseInt(this.closest('.cart-item').dataset.index);
+                    const currentValue = parseInt(input.value);
+                    const item = cartItems[index];
+                    
+                    if (this.classList.contains('plus')) {
+                        // Check if we have enough stock
+                        if (productData[item.name].availableStock < 1) {
+                            alert('Sorry, no more stock available!');
+                            return;
+                        }
+                        input.value = currentValue + 1;
+                        cartItems[index].quantity = currentValue + 1;
+                        // Decrease available stock
+                        productData[item.name].availableStock -= 1;
+                    } else if (this.classList.contains('minus') && currentValue > 1) {
+                        input.value = currentValue - 1;
+                        cartItems[index].quantity = currentValue - 1;
+                        // Increase available stock
+                        productData[item.name].availableStock += 1;
+                    }
+                    
+                    updateItemTotal(this.closest('.cart-item'), index);
+                    localStorage.setItem('cart', JSON.stringify(cartItems));
+                    localStorage.setItem('productData', JSON.stringify(productData));
+                    updateCartCount();
+                });
+            });
+
+            // Quantity input change
+            document.querySelectorAll('.qty-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    updateCartTimer(); // Update timer on quantity input
+                    const index = parseInt(this.closest('.cart-item').dataset.index);
+                    const newValue = parseInt(this.value);
+                    const oldValue = cartItems[index].quantity;
+                    const item = cartItems[index];
+                    
+                    if (newValue < 1) this.value = 1;
+                    
+                    // Check if we have enough stock for an increase
+                    if (newValue > oldValue) {
+                        const increase = newValue - oldValue;
+                        if (productData[item.name].availableStock < increase) {
+                            alert('Sorry, not enough stock available!');
+                            this.value = oldValue;
+                            return;
+                        }
+                        productData[item.name].availableStock -= increase;
+                    } else if (newValue < oldValue) {
+                        const decrease = oldValue - newValue;
+                        productData[item.name].availableStock += decrease;
+                    }
+                    
+                    cartItems[index].quantity = parseInt(this.value);
+                    updateItemTotal(this.closest('.cart-item'), index);
+                    localStorage.setItem('cart', JSON.stringify(cartItems));
+                    localStorage.setItem('productData', JSON.stringify(productData));
+                    updateCartCount();
+                });
+            });
+
+            // Remove item
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    updateCartTimer(); // Update timer on item removal
+                    const index = parseInt(this.closest('.cart-item').dataset.index);
+                    const item = cartItems[index];
+                    // Return stock when removing item
+                    productData[item.name].availableStock += item.quantity;
+                    
+                    this.closest('.cart-item').style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => {
+                        cartItems.splice(index, 1);
+                        localStorage.setItem('cart', JSON.stringify(cartItems));
+                        localStorage.setItem('productData', JSON.stringify(productData));
+                        renderCart();
+                        updateCartCount();
+                    }, 300);
+                });
+            });
+
+            // Clear cart
+            document.querySelector('.clear-cart').addEventListener('click', function() {
+                updateCartTimer(); // Update timer on cart clear
+                const items = document.querySelectorAll('.cart-item');
+                items.forEach(item => {
+                    item.style.animation = 'slideOut 0.3s ease-out';
+                });
+                
+                setTimeout(() => {
+                    // Return all stock when clearing cart
+                    cartItems.forEach(item => {
+                        if (productData[item.name]) {
+                            productData[item.name].availableStock += item.quantity;
+                        }
+                    });
+                    
+                    // Clear cart data
+                    cartItems = [];
+                    localStorage.setItem('cart', JSON.stringify([]));
+                    localStorage.setItem('productData', JSON.stringify(productData));
+                    
+                    // Update UI
+                    renderCart();
+                    updateCartCount();
+                }, 300);
+            });
+
+            // Continue shopping
+            document.querySelector('.continue-shopping')?.addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+        }
+        
+        function updateItemTotal(cartItem, index) {
+            const quantity = cartItems[index].quantity;
+            const price = cartItems[index].price;
+            const total = (quantity * price).toFixed(2);
+            cartItem.querySelector('.item-total').textContent = `₹${total}`;
+            updateOrderSummary();
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+        }
+
+        function updateOrderSummary() {
+            const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.10; // 10% tax
+            const shipping = subtotal > 0 ? 50 : 0; // ₹50 shipping if cart not empty
+            const total = subtotal + tax + shipping;
+
+            document.querySelector('.summary-items .summary-item:nth-child(1) span:last-child').textContent = `₹${subtotal.toFixed(2)}`;
+            document.querySelector('.summary-items .summary-item:nth-child(2) span:last-child').textContent = `₹${shipping.toFixed(2)}`;
+            document.querySelector('.summary-items .summary-item:nth-child(3) span:last-child').textContent = `₹${tax.toFixed(2)}`;
+            document.querySelector('.total-price').textContent = `₹${total.toFixed(2)}`;
+        }
+
+        function updateCartCount() {
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+                cartCount.textContent = totalItems;
+            }
+        }
+
+        function updateEmptyCartState() {
+            const emptyCart = `
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h2>Your cart is empty</h2>
+                    <p>Looks like you haven't added any items to your cart yet.</p>
+                    <a href="index.html#products" class="cta-button">Start Shopping</a>
+                </div>
+            `;
+            cartItemsContainer.innerHTML = emptyCart;
+            document.querySelector('.cart-count').textContent = '0';
+            
+            // Update summary to zero
+            document.querySelector('.summary-items .summary-item:nth-child(1) span:last-child').textContent = '₹0.00';
+            document.querySelector('.summary-items .summary-item:nth-child(2) span:last-child').textContent = '₹0.00';
+            document.querySelector('.summary-items .summary-item:nth-child(3) span:last-child').textContent = '₹0.00';
+            document.querySelector('.total-price').textContent = '₹0.00';
+        }
+    </script>
+</body>
+</html>

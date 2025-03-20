@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - VeggieHub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-leaf"></i> VeggieHub</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="cart.html">Cart</a></li>
+            <li><a href="checkout.html" class="active">Checkout</a></li>
+        </ul>
+    </nav>
+
+    <main class="checkout-container">
+        <h2>Checkout</h2>
+
+        <form id="checkoutForm">
+            <h3>Shipping Details</h3>
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="address">Address</label>
+            <textarea id="address" name="address" required></textarea>
+
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" required>
+
+            <h3>Payment Method</h3>
+            <label>
+                <input type="radio" name="payment" value="cod" checked> Cash on Delivery
+            </label>
+            <label>
+                <input type="radio" name="payment" value="upi"> UPI Payment
+            </label>
+            <label>
+                <input type="radio" name="payment" value="card"> Credit/Debit Card
+            </label>
+
+            <h3>Order Summary</h3>
+            <div id="orderSummary"></div>
+
+            <button type="submit" class="confirm-btn">Confirm Order</button>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 VeggieHub. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function loadOrderSummary() {
+            const orderSummary = document.getElementById('orderSummary');
+            let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            
+            if (cartItems.length === 0) {
+                orderSummary.innerHTML = '<p>Your cart is empty.</p>';
+                return;
+            }
+
+            let summaryHTML = "<ul>";
+            let total = 0;
+
+            cartItems.forEach(item => {
+                total += item.price * item.quantity;
+                summaryHTML += `<li>${item.name} - ${item.quantity} x $${item.price.toFixed(2)}</li>`;
+            });
+
+            summaryHTML += `</ul><h3>Total: $${total.toFixed(2)}</h3>`;
+            orderSummary.innerHTML = summaryHTML;
+        }
+
+        document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const orderData = {
+                name: document.getElementById('name').value,
+                address: document.getElementById('address').value,
+                phone: document.getElementById('phone').value,
+                paymentMethod: document.querySelector('input[name="payment"]:checked').value,
+                cartItems: JSON.parse(localStorage.getItem('cartItems')) || [],
+                totalAmount: document.getElementById('orderSummary').querySelector('h3').textContent.replace("Total: $", "")
+            };
+
+            const response = await fetch('/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+            alert(result.message);
+
+            if (result.success) {
+                localStorage.removeItem('cartItems');
+                window.location.href = "index.html";
+            }
+        });
+
+        loadOrderSummary();
+    </script>
+
+    <style>
+        .checkout-container {
+            width: 50%;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        .checkout-container h2 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            padding: 10px;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        .confirm-btn {
+            background-color: green;
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .confirm-btn:hover {
+            background-color: darkgreen;
+        }
+    </style>
+</body>
+</html>

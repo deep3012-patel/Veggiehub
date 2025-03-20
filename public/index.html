@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="productApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresh Vegetables Market</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <style>
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+        }
+
+        .product-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            padding: 20px;
+            margin: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .product-modal.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .product-modal-content {
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+        }
+
+        .product-modal-image {
+            width: 220px;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .modal-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .modal-rating {
+            color: #ffd700;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .modal-price {
+            font-size: 20px;
+            color: #2ecc71;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .modal-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .nutrition-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .nutrition-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nutrition-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .nutrition-info li {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .nutrition-info span {
+            font-weight: 600;
+            color: #2ecc71;
+        }
+
+        .product-details {
+            margin-top: 15px;
+        }
+
+        .product-details h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .product-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .detail-item i {
+            color: #2ecc71;
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .modal-add-to-cart {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .modal-add-to-cart:hover {
+            background: #27ae60;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+            transition: color 0.3s;
+            z-index: 2;
+        }
+
+        .close-modal:hover {
+            color: #e74c3c;
+        }
+
+        @media (max-width: 650px) {
+            .product-modal {
+                width: 95%;
+                max-height: 85vh;
+                padding: 15px;
+            }
+
+            .product-modal-content {
+                flex-direction: column;
+            }
+
+            .product-modal-image {
+                width: 100%;
+                height: 180px;
+                margin-bottom: 15px;
+            }
+
+            .modal-details {
+                padding-right: 0;
+            }
+
+            .nutrition-info ul,
+            .product-details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-title {
+                font-size: 18px;
+            }
+
+            .modal-price {
+                font-size: 16px;
+            }
+
+            .nutrition-info,
+            .detail-item {
+                padding: 8px;
+            }
+
+            .close-modal {
+                top: 10px;
+                right: 10px;
+                font-size: 18px;
+            }
+        }
+
+        /* Add to cart success message animation */
+        @keyframes slideIn {
+            0% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            10% {
+                transform: translateX(-10px);
+                opacity: 1;
+            }
+            90% {
+                transform: translateX(-10px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+
+        .success-toast {
+            background: #2ecc71;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            animation: slideIn 2s ease-out forwards;
+        }
+
+        .add-to-cart-btn,
+        .modal-add-to-cart {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-to-cart-btn::after,
+        .modal-add-to-cart::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .add-to-cart-btn:active::after,
+        .modal-add-to-cart:active::after {
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-leaf"></i> VeggieHub</div>
+        <ul class="nav-links" >
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="#products">Products</a></li>
+            <li><a href="cart.html">Cart <span class="cart-count">0</span></a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li><a href="about.html">About Us</a></li>
+        </ul>
+        <form ng-controller="SearchController" ng-submit="searchProducts()">
+            <input type="text" ng-model="searchQuery" placeholder="Search for products..." required>
+            <button type="submit">Search</button>
+        </form>
+        <button id="darkModeToggle">
+            <i class="fas fa-moon"></i> Dark Mode
+        </button>
+        
+    </nav>
+
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Fresh & Healthy<br>Vegetables</h1>
+            <p>Get farm-fresh vegetables delivered to your doorstep</p>
+            <a href="#products" class="cta-button">Shop Now <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+
+    <main>
+        <section class="features">
+            <div class="feature-card">
+                <i class="fas fa-truck"></i>
+                <h3>Free Delivery</h3>
+                <p>On orders above ₹30</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-leaf"></i>
+                <h3>Fresh Produce</h3>
+                <p>Directly from farms</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Quality Assured</h3>
+                <p>100% organic</p>
+            </div>
+        </section>
+
+        <section id="products">
+            <h2 class="section-title" id="ofv">Our Fresh Vegetables</h2>
+            <div class="vegetable-grid">
+                <div class="veg-card">
+                    <div class="card-badge">Fresh</div>
+                    <div class="img-container">
+                        <img src="http://images.unsplash.com/photo-1561136594-7f68413baa99?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Tomatoes">
+                    </div>
+                    <div class="card-content">
+                        <h3>Fresh Tomatoes</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="price">₹2.99/kg</p>
+                        <p class="description">Fresh, ripe tomatoes perfect for salads and cooking</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Organic</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=150&h=150&fit=crop" alt="Potatoes">
+                    </div>
+                    <div class="card-content">
+                        <h3>Green Lettuce</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <p class="price">₹1.99/kg</p>
+                        <p class="description">Crisp and fresh lettuce leaves</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Popular</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1582515073490-39981397c445?w=150&h=150&fit=crop" alt="Carrots">
+                    </div>
+                    <div class="card-content">
+                        <h3>Fresh Carrots</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="price">₹1.49/kg</p>
+                        <p class="description">Sweet and crunchy carrots</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Sale</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=150&h=150&fit=crop" alt="Onions">
+                    </div>
+                    <div class="card-content">
+                        <h3>Bell Peppers</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <p class="price">₹1.29/kg</p>
+                        <p class="description">Colorful and crisp bell peppers</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Fresh</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37" alt="Carrots">
+                    </div>
+                    <div class="card-content">
+                        <h3>Fresh Carrots</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="price">₹3.49/kg</p>
+                        <p class="description">Sweet and crunchy organic carrots</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Premium</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1601493700631-2b16ec4b4716" alt="Broccoli">
+                    </div>
+                    <div class="card-content">
+                        <h3>Fresh Broccoli</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <p class="price">₹4.99/kg</p>
+                        <p class="description">Nutrient-rich fresh broccoli</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Organic</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1518977822534-7049a61ee0c2" alt="Bell Peppers">
+                    </div>
+                    <div class="card-content">
+                        <h3>Bell Peppers</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="price">₹5.99/kg</p>
+                        <p class="description">Colorful and crisp bell peppers</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Fresh</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1566842600175-97dca489844f" alt="Cucumber">
+                    </div>
+                    <div class="card-content">
+                        <h3>Cucumber</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <p class="price">₹2.49/kg</p>
+                        <p class="description">Fresh and crispy cucumbers</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Organic</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1587334274328-64186a80aeee" alt="Spinach">
+                    </div>
+                    <div class="card-content">
+                        <h3>Fresh Spinach</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="price">₹3.99/kg</p>
+                        <p class="description">Organic and nutritious spinach leaves</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="veg-card">
+                    <div class="card-badge">Premium</div>
+                    <div class="img-container">
+                        <img src="https://images.unsplash.com/photo-1589927986089-35812388d1f4" alt="Mushrooms">
+                    </div>
+                    <div class="card-content">
+                        <h3>Button Mushrooms</h3>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <p class="price">₹6.99/kg</p>
+                        <p class="description">Fresh button mushrooms</p>
+                        <button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal-overlay" id="productModal">
+        <div class="product-modal">
+            <button class="close-modal"><i class="fas fa-times"></i></button>
+            <div class="product-modal-content">
+                <img src="" alt="" class="product-modal-image">
+                <div class="modal-details">
+                    <h2 class="modal-title"></h2>
+                    <div class="modal-rating"></div>
+                    <p class="modal-price"></p>
+                    <p class="modal-description"></p>
+                    
+                    <div class="nutrition-info">
+                        <h3><i class="fas fa-heartbeat"></i> Nutrition Information</h3>
+                        <ul>
+                            <li>Calories <span class="calories">--</span></li>
+                            <li>Protein <span class="protein">--</span></li>
+                            <li>Carbs <span class="carbs">--</span></li>
+                            <li>Fiber <span class="fiber">--</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="product-details">
+                        <h3><i class="fas fa-info-circle"></i> Product Details</h3>
+                        <div class="product-details-grid">
+                            <div class="detail-item">
+                                <i class="fas fa-leaf"></i>
+                                <span class="quality">Premium Quality</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-truck"></i>
+                                <span class="delivery">Same Day Delivery</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-box"></i>
+                                <span class="stock">In Stock</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-weight"></i>
+                                <span class="weight">Available in multiple sizes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="modal-add-to-cart">
+                        <i class="fas fa-cart-plus"></i>
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-leaf"></i> VeggieHub</h3>
+                <p>Fresh vegetables delivered to your doorstep</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#products">Products</a></li>
+                    <li><a href="cart.html">Cart</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+                <p><i class="fas fa-envelope"></i> info@VeggieHub.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 VeggieHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Cart functionality
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        function updateCartCount() {
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                cartCount.textContent = cart.reduce((total, item) => total + item.quantity, 0);
+            }
+        }
+
+        function addToCart(product) {
+            const existingItem = cart.find(item => item.name === product.name);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    image: product.image
+                });
+            }
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            
+            // Show success message
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.innerHTML = `
+                <div class="success-toast">
+                    <i class="fas fa-check-circle"></i>
+                    ${product.name} added to cart!
+                </div>
+            `;
+            document.body.appendChild(successMessage);
+            
+            setTimeout(() => {
+                successMessage.remove();
+            }, 2000);
+
+            // Update the button text temporarily
+            const button = event.target.closest('button');
+            if (button) {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Added!';
+                button.style.background = '#27ae60';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 1000);
+            }
+        }
+
+        // Add event listeners for add to cart buttons
+        function initializeCartButtons() {
+            document.querySelectorAll('.add-to-cart-btn, .modal-add-to-cart').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent modal from opening when clicking add to cart
+                    
+                    const card = this.closest('.veg-card') || this.closest('.product-modal');
+                    const name = card.querySelector('h3') ? card.querySelector('h3').textContent : card.querySelector('.modal-title').textContent;
+                    const priceText = card.querySelector('.price') ? card.querySelector('.price').textContent : card.querySelector('.modal-price').textContent;
+                    const price = parseFloat(priceText.replace('₹', '').replace('/kg', ''));
+                    const image = card.querySelector('img').src;
+                    
+                    addToCart({
+                        name: name,
+                        price: price,
+                        image: image
+                    });
+                });
+            });
+        }
+
+        // Initialize cart functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCartButtons();
+            updateCartCount();
+        });
+
+        // Close modal when clicking outside
+        const modal = document.getElementById('productModal');
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Close modal when clicking close button
+        document.querySelector('.close-modal').addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        // Add to cart from modal
+        document.querySelector('.modal-add-to-cart').addEventListener('click', function(e) {
+            const modal = this.closest('.product-modal');
+            const name = modal.querySelector('.modal-title').textContent;
+            const priceText = modal.querySelector('.modal-price').textContent;
+            const price = parseFloat(priceText.replace('₹', '').replace('/kg', ''));
+            const image = modal.querySelector('.product-modal-image').src;
+            
+            addToCart({
+                name: name,
+                price: price,
+                image: image
+            });
+        });
+
+        // Initialize on page load
+        updateCartCount();
+
+        // Product data
+        const initialProductData = {
+            'Fresh Tomatoes': {
+                quality: 'Premium Grade A',
+                totalStock: 100,
+                availableStock: 100,
+                unit: 'kg',
+                delivery: 'Same Day Delivery',
+                category: 'Fresh Vegetables',
+                weight: 'Available in 1kg, 2kg, 5kg',
+                price: '₹2.99/kg',
+                description: 'Fresh, ripe tomatoes perfect for salads and cooking'
+            },
+            'Green Lettuce': {
+                quality: 'Organic Grade A',
+                totalStock: 50,
+                availableStock: 50,
+                unit: 'kg',
+                delivery: 'Next Day Delivery',
+                category: 'Leafy Greens',
+                weight: 'Available in 250g, 500g',
+                price: '₹1.99/piece',
+                description: 'Crisp and fresh lettuce leaves'
+            },
+            'Fresh Carrots': {
+                quality: 'Premium Grade A',
+                totalStock: 150,
+                availableStock: 150,
+                unit: 'kg',
+                delivery: 'Same Day Delivery',
+                category: 'Root Vegetables',
+                weight: 'Available in 500g, 1kg',
+                price: '₹1.49/kg',
+                description: 'Sweet and crunchy carrots'
+            },
+            'Bell Peppers': {
+                quality: 'Premium Grade A',
+                totalStock: 80,
+                availableStock: 80,
+                unit: 'kg',
+                delivery: 'Same Day Delivery',
+                category: 'Fresh Vegetables',
+                weight: 'Available in 500g, 1kg',
+                price: '₹3.99/kg',
+                description: 'Colorful and crisp bell peppers'
+            },
+            'Fresh Broccoli': {
+                quality: 'Premium Grade A',
+                totalStock: 100,
+                availableStock: 100,
+                unit: 'kg',
+                delivery: 'Same Day Delivery',
+                category: 'Fresh Vegetables',
+                weight: 'Available in 500g, 1kg',
+                price: '₹4.99/kg',
+                description: 'Nutrient-rich fresh broccoli'
+            },
+            'Cucumber': {
+                quality: 'Fresh',
+                totalStock: 100,
+                availableStock: 100,
+                unit: 'kg',
+                delivery: 'Same Day Delivery',
+                category: 'Fresh Vegetables',
+                weight: 'Available in 500g, 1kg',
+                price: '₹2.49/kg',
+                description: 'Fresh and crispy cucumbers'
+            },
+            'Fresh Spinach': {
+                quality: 'Organic',
+                totalStock: 100,
+                availableStock: 100,
+                unit: 'kg',
+                delivery: 'Same Day Delivery',
+                category: 'Leafy Greens',
+                weight: 'Available in 250g, 500g',
+                price: '₹3.99/kg',
+                description: 'Organic and nutritious spinach leaves'
+            },
+            'Button Mushrooms': {
+                quality: 'Premium',
+                totalStock: 100,
+                availableStock: 100,
+                unit: 'kg',
+                delivery: 'Same Day Delivery',
+                category: 'Mushrooms',
+                weight: 'Available in 250g, 500g',
+                price: '₹6.99/kg',
+                description: 'Fresh button mushrooms'
+            }
+        };
+
+        // Initialize or load product data from localStorage
+        let productData = JSON.parse(localStorage.getItem('productData')) || initialProductData;
+        if (!localStorage.getItem('productData')) {
+            localStorage.setItem('productData', JSON.stringify(productData));
+        }
+
+        // Auto-clear cart functionality
+        function startCartTimer() {
+            // Save the current timestamp
+            localStorage.setItem('cartLastActivity', Date.now());
+        }
+
+        function checkCartTimer() {
+            const lastActivity = parseInt(localStorage.getItem('cartLastActivity')) || Date.now();
+            const currentTime = Date.now();
+            const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+            if (currentTime - lastActivity > tenMinutes) {
+                // Return stock for all items
+                const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+                const productData = JSON.parse(localStorage.getItem('productData')) || {};
+
+                cartItems.forEach(item => {
+                    if (productData[item.name]) {
+                        productData[item.name].availableStock += item.quantity;
+                    }
+                });
+
+                // Clear cart
+                localStorage.setItem('cart', JSON.stringify([]));
+                localStorage.setItem('productData', JSON.stringify(productData));
+                localStorage.setItem('cartLastActivity', Date.now());
+
+                // Update UI
+                updateCartCount();
+                alert('Cart has been cleared due to 10 minutes of inactivity');
+            }
+        }
+
+        // Check cart timer every 5 seconds
+        setInterval(checkCartTimer, 5000);
+
+        // Add click event to product cards
+        document.querySelectorAll('.veg-card').forEach(card => {
+            const addToCartBtn = card.querySelector('.add-to-cart-btn');
+            
+            card.addEventListener('click', function(e) {
+                if (!e.target.closest('.add-to-cart-btn')) {
+                    const modal = document.getElementById('productModal');
+                    const modalContent = modal.querySelector('.product-modal');
+                    const modalImage = modal.querySelector('.product-modal-image');
+                    const modalTitle = modal.querySelector('.modal-title');
+                    const modalPrice = modal.querySelector('.modal-price');
+                    const modalDescription = modal.querySelector('.modal-description');
+                    const modalRating = modal.querySelector('.modal-rating');
+                    
+                    // Get data from the clicked card
+                    const cardImage = card.querySelector('img');
+                    const cardTitle = card.querySelector('h3');
+                    const cardPrice = card.querySelector('.price');
+                    const cardDescription = card.querySelector('.description');
+                    const cardRating = card.querySelector('.rating');
+                    
+                    // Get product data
+                    const productName = cardTitle.textContent;
+                    const data = productData[productName] || {};
+                    
+                    // Set modal content
+                    modalImage.src = cardImage.src;
+                    modalImage.alt = cardImage.alt;
+                    modalTitle.textContent = productName;
+                    modalPrice.textContent = cardPrice.textContent;
+                    modalDescription.textContent = cardDescription ? cardDescription.textContent : 'Fresh and healthy vegetables from local farms';
+                    modalRating.innerHTML = cardRating.innerHTML;
+                    
+                    // Set product details
+                    modal.querySelector('.quality').textContent = data.quality || 'Premium Quality';
+                    modal.querySelector('.delivery').textContent = data.delivery || 'Same Day Delivery';
+                    modal.querySelector('.stock').textContent = data.availableStock ? 
+                        `${data.availableStock}${data.unit} available` : 'In Stock';
+                    modal.querySelector('.weight').textContent = data.weight || 'Available in multiple sizes';
+                    
+                    // Set nutrition info
+                    const nutritionInfo = {
+                        'Fresh Tomatoes': { calories: '18', protein: '0.9g', carbs: '3.9g', fiber: '1.2g' },
+                        'Green Lettuce': { calories: '15', protein: '1.4g', carbs: '2.9g', fiber: '1.3g' },
+                        'Fresh Carrots': { calories: '41', protein: '0.9g', carbs: '9.6g', fiber: '2.8g' },
+                        'Fresh Broccoli': { calories: '34', protein: '2.8g', carbs: '7g', fiber: '2.6g' },
+                        'Bell Peppers': { calories: '31', protein: '1g', carbs: '6g', fiber: '2.1g' },
+                        'Cucumber': { calories: '8', protein: '0.5g', carbs: '1.9g', fiber: '0.5g' },
+                        'Fresh Spinach': { calories: '23', protein: '2.9g', carbs: '3.6g', fiber: '2.2g' },
+                        'Button Mushrooms': { calories: '22', protein: '3.1g', carbs: '3.3g', fiber: '1g' }
+                    };
+                    
+                    const vegInfo = nutritionInfo[productName] || { calories: '--', protein: '--', carbs: '--', fiber: '--' };
+                    modal.querySelector('.calories').textContent = vegInfo.calories;
+                    modal.querySelector('.protein').textContent = vegInfo.protein;
+                    modal.querySelector('.carbs').textContent = vegInfo.carbs;
+                    modal.querySelector('.fiber').textContent = vegInfo.fiber;
+                    
+                    modal.style.display = 'flex';
+                    // Add a small delay to trigger the transitions
+                    requestAnimationFrame(() => {
+                        modal.classList.add('active');
+                        modalContent.classList.add('active');
+                    });
+                }
+            });
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        angular.module('productApp', [])
+            .controller('SearchController', function($scope) {
+                $scope.searchQuery = '';
+
+                $scope.searchProducts = function() {
+                    console.log('Searching for:', $scope.searchQuery);
+                    // Implement your search logic here
+                    const searchResults = document.querySelectorAll('.veg-card');
+                    searchResults.forEach(result => {
+                        const productName = result.querySelector('h3').textContent;
+                        if (productName.toLowerCase().includes($scope.searchQuery.toLowerCase())) {
+                            result.style.display = 'block';
+                        } else {
+                            result.style.display = 'none';
+                        }
+                    });
+                };
+            });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const darkModeToggle = document.getElementById("darkModeToggle");
+            const body = document.body;
+    
+            // Check if Dark Mode was enabled before
+            if (localStorage.getItem("darkMode") === "enabled") {
+                body.classList.add("dark-mode");
+                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+            }
+    
+            darkModeToggle.addEventListener("click", function () {
+                body.classList.toggle("dark-mode");
+    
+                if (body.classList.contains("dark-mode")) {
+                    localStorage.setItem("darkMode", "enabled");
+                    darkModeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+                } else {
+                    localStorage.setItem("darkMode", "disabled");
+                    darkModeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>

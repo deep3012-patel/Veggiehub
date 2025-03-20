@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Fresh Vegetables Market</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-leaf"></i> VeggieHub</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#products">Products</a></li>
+            <li><a href="cart.html">Cart <span class="cart-count">0</span></a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li><a href="about.html" class="active">About Us</a></li>
+        </ul>
+    </nav>
+
+    <main class="about-page">
+        <div class="about-hero">
+            <h1>Our Story</h1>
+            <p>Bringing fresh vegetables from farm to your table since 2010</p>
+        </div>
+
+        <div class="about-container">
+            <section class="about-section">
+                <div class="about-content">
+                    <h2>Who We Are</h2>
+                    <p>VeggieHub started with a simple mission: to provide fresh, high-quality vegetables to our community while supporting local farmers. What began as a small market stall has grown into a trusted name in fresh produce delivery.</p>
+                    <p>We work directly with farmers who share our commitment to quality and sustainable farming practices. This partnership ensures that you get the freshest vegetables while supporting local agriculture.</p>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=500" alt="Our Farm">
+                </div>
+            </section>
+
+            <section class="values-section">
+                <h2>Our Values</h2>
+                <div class="values-grid">
+                    <div class="value-card">
+                        <i class="fas fa-heart"></i>
+                        <h3>Quality First</h3>
+                        <p>We never compromise on the quality of our produce. Each vegetable is carefully selected to ensure freshness and taste.</p>
+                    </div>
+                    <div class="value-card">
+                        <i class="fas fa-leaf"></i>
+                        <h3>Sustainability</h3>
+                        <p>We support sustainable farming practices and work to minimize our environmental impact through eco-friendly packaging.</p>
+                    </div>
+                    <div class="value-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Community</h3>
+                        <p>We believe in building strong relationships with our farmers, customers, and community through fair practices.</p>
+                    </div>
+                    <div class="value-card">
+                        <i class="fas fa-truck"></i>
+                        <h3>Reliability</h3>
+                        <p>Count on us for timely delivery and consistent quality. Your satisfaction is our top priority.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="team-section">
+                <h2>Meet Our Team</h2>
+                <div class="team-grid">
+                    <div class="team-member">
+                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150" alt="John Doe">
+                        <h3>John Doe</h3>
+                        <p class="position">Founder & CEO</p>
+                        <p>With 15 years of experience in agriculture and retail.</p>
+                    </div>
+                    <div class="team-member">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150" alt="Jane Smith">
+                        <h3>Jane Smith</h3>
+                        <p class="position">Head of Operations</p>
+                        <p>Ensures smooth delivery and quality control.</p>
+                    </div>
+                    <div class="team-member">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150" alt="Mike Johnson">
+                        <h3>Mike Johnson</h3>
+                        <p class="position">Farm Relations</p>
+                        <p>Works directly with our partner farmers.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="stats-section">
+                <div class="stat-card">
+                    <h3>10+</h3>
+                    <p>Years of Service</p>
+                </div>
+                <div class="stat-card">
+                    <h3>50+</h3>
+                    <p>Partner Farms</p>
+                </div>
+                <div class="stat-card">
+                    <h3>10,000+</h3>
+                    <p>Happy Customers</p>
+                </div>
+                <div class="stat-card">
+                    <h3>100%</h3>
+                    <p>Quality Assured</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#products">Products</a></li>
+                    <li><a href="cart.html">Cart</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 VeggieHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Update cart count
+        function updateCartCount() {
+            const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            const cartCount = document.querySelector('.cart-count');
+            const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+            cartCount.textContent = totalItems;
+        }
+        updateCartCount();
+    </script>
+</body>
+</html>

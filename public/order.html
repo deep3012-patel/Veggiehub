@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Your Order - VeggieHub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-leaf"></i> VeggieHub</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="cart.html">Cart</a></li>
+            <li><a href="checkout.html">Checkout</a></li>
+            <li><a href="order.html" class="active">Track Order</a></li>
+        </ul>
+    </nav>
+
+    <main class="order-container">
+        <h2>Track Your Order</h2>
+        <input type="text" id="orderId" placeholder="Enter Order ID">
+        <button onclick="trackOrder()">Track Order</button>
+
+        <div id="orderStatus"></div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 VeggieHub. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function trackOrder() {
+            const orderId = document.getElementById('orderId').value;
+            if (!orderId) {
+                alert("Please enter an Order ID!");
+                return;
+            }
+
+            const response = await fetch(`/track-order/${orderId}`);
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('orderStatus').innerHTML = `
+                    <h3>Order Status: <span>${result.order.status}</span></h3>
+                    <p><strong>Name:</strong> ${result.order.name}</p>
+                    <p><strong>Address:</strong> ${result.order.address}</p>
+                    <p><strong>Phone:</strong> ${result.order.phone}</p>
+                    <p><strong>Total Amount:</strong> $${result.order.totalAmount}</p>
+                `;
+            } else {
+                document.getElementById('orderStatus').innerHTML = `<p style="color: red;">Order Not Found</p>`;
+            }
+        }
+    </script>
+
+    <style>
+        .order-container {
+            width: 50%;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        input {
+            padding: 10px;
+            width: 80%;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: darkgreen;
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2>Welcome, Vendor!</h2>
+
+    <h3>Add a Product</h3>
+    <input type="text" id="productName" placeholder="Product Name">
+    <input type="number" id="productPrice" placeholder="Price">
+    <input type="number" id="productStock" placeholder="Stock">
+    <input type="text" id="productImage" placeholder="Image URL">
+    <button id="addProductBtn">Add Product</button>
+
+    <h3>Your Products</h3>
+    <div id="vendorProducts"></div>
+
+    <script>
+        document.getElementById("addProductBtn").addEventListener("click", async function() {
+            const vendorId = localStorage.getItem("vendorId");
+            const name = document.getElementById("productName").value;
+            const price = document.getElementById("productPrice").value;
+            const stock = document.getElementById("productStock").value;
+            const image = document.getElementById("productImage").value;
+
+            const response = await fetch("/vendor/add-product", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ vendorId, name, price, stock, image })
+            });
+
+            const result = await response.json();
+            alert(result.message);
+            fetchVendorProducts();
+        });
+
+        async function fetchVendorProducts() {
+            const response = await fetch("/vendor/products");
+            const result = await response.json();
+
+            const productContainer = document.getElementById("vendorProducts");
+            productContainer.innerHTML = result.products.map(p => `
+                <div>
+                    <h4>${p.name}</h4>
+                    <p>Price: $${p.price}</p>
+                    <p>Stock: ${p.stock}kg</p>
+                    <p>Vendor: ${p.vendor}</p>
+                </div>
+            `).join("");
+        }
+
+        fetchVendorProducts();
+    </script>
+</body>
+</html>
